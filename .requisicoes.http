@@ -1,0 +1,66 @@
+### get professores
+GET http://localhost:3000/professores HTTP/1.1
+Content-Type: application/json
+
+### get professor
+GET http://localhost:3000/professores/1 HTTP/1.1
+
+### inserir professor
+POST http://localhost:3000/professores HTTP/1.1
+Content-Type: application/json
+
+{
+    "nome": "Daniel Anderle",
+    "email": "daniel.anderle@ifc.edu.br"
+}
+
+### alterar professor
+PUT http://localhost:3000/professores/6 HTTP/1.1
+Content-Type: application/json
+
+{
+    "nome": "Daniel Fernando Anderle",
+    "email": "daniel.anderle@ifc.edu.br"
+}
+
+### excluir professor
+DELETE http://localhost:3000/professores/8 HTTP/1.1
+
+
+
+
+
+
+
+### get cursos
+GET http://localhost:3000/cursos HTTP/1.1
+Content-Type: application/json
+
+### get curso
+GET http://localhost:3000/cursos/1 HTTP/1.1
+
+### inserir curso
+POST http://localhost:3000/cursos HTTP/1.1
+Content-Type: application/json
+
+{
+    "codigo": 6,
+    "sigla": "TES",
+    "descricao": "teste",
+    "id_coordenador": 4,
+    "nome": "Testando"
+}
+
+### alterar curso
+PUT http://localhost:3000/cursos HTTP/1.1
+Content-Type: application/json
+
+{
+    "sigla": "TES",
+    "descricao": "a",
+    "id_coordenador": 4,
+    "nome": "Testando"
+}
+
+### excluir curso
+DELETE http://localhost:3000/cursos/3 HTTP/1.1

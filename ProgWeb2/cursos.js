@@ -8,20 +8,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetch("http://localhost:3000/cursos")
       .then((response) => response.json())
-      .then((cursos) => {
+      .then((data) => {
+        cursos = data;
         console.log(cursos);
 
-        cursos.forEach((curso, index) => {
+        cursos.forEach((curso) => {
           const row = document.createElement("tr");
           row.innerHTML = `
-                <td>${curso.id}</td>
-                <td>${curso.nome}</td>
+                <td>${curso.codigo}</td>
                 <td>${curso.sigla}</td>
+                <td>${curso.id_coordenador}</td>
                 <td>${curso.descricao}</td>
-                <td>${curso.coordenador}</td>
+                <td>${curso.nome}</td>
                 <td>
-                <button onclick="editCurso(${index})">Editar</button>
-                <button onclick="deleteCurso(${index})">Excluir</button>
+                <button onclick="editCurso(${curso.codigo})">Editar</button>
+                <button onclick="deleteCurso(${curso.codigo})">Excluir</button>
                 </td>
                 `;
           tbody.appendChild(row);
@@ -29,14 +30,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
-  function addCurso(
-    id,
-    nome,
-    sigla,
-    descricao,
-    coordenador
-  ) {
-    let curso = { id, nome, sigla, descricao, coordenador };
+  renderCursos();
+
+  function addCurso(codigo, sigla, descricao, id_coordenador, nome,) {
+    let curso = { codigo, sigla, descricao, id_coordenador, nome};
     console.log(curso);
 
     fetch("http://localhost:3000/cursos", {
@@ -47,6 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((response) => response.json())
       .then((dados) => {
         console.log(dados);
+        renderCursos();
       });
   }
 
@@ -71,45 +69,64 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  function editCurso(index) {
-    const curso = cursos[index];
-    document.getElementById("id").value = curso.id;
-    document.getElementById("nome").value = curso.nome;
-    document.getElementById("sigla").value = curso.sigla;
-    document.getElementById("descricao").value = curso.descricao;
-    document.getElementById("coordenador").value = curso.coordenador;
-    currentCursoId = index;
+  function editCurso(codigo) {
+    const prof = cursos.find(p => p.codigo == codigo);
+    document.getElementById("codigo").value = prof.codigo;
+    document.getElementById("sigla").value = prof.sigla;
+    document.getElementById("descricao").value = prof.descricao;
+    document.getElementById("id_coordenador").value = prof.id_coordenador;
+    document.getElementById("nome").value = prof.nome;
+    currentCursoId = codigo;
     openModal("cursoModal");
   }
 
-  function deleteCurso(index) {
+  window.editCurso = editCurso;
+
+  function deleteCurso(codigo) {
     if (confirm("Tem certeza que deseja excluir este curso?")) {
-      cursos.splice(index, 1);
-      renderCursos();
+      fetch("http://localhost:3000/cursos/" + codigo, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => response.json())
+        .then((dados) => {
+          console.log(dados);
+          renderCursos();
+        });
     }
   }
 
+  window.deleteCurso = deleteCurso;
+
   const cursoForm = document.getElementById("cursoForm");
+
   cursoForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    const id = document.getElementById("id").value;
-    const nome = document.getElementById("nome").value;
+    const codigo = document.getElementById("codigo").value;
     const sigla = document.getElementById("sigla").value;
     const descricao = document.getElementById("descricao").value;
-    const coordenador = document.getElementById("coordenador").value;
-    //inclusão ou alteração
+    const id_coordenador = document.getElementById("id_coordenador").value;
+    const nome = document.getElementById("nome").value;
+
     if (currentCursoId !== null) {
-      cursos[currentCursoId] = {
-        id,
-        nome,
-        sigla,
-        descricao,
-        coordenador,
-      };
+      updateCurso(codigo, sigla, descricao, id_coordenador, nome);
     } else {
-      addCurso(id, nome, sigla, descricao, coordenador);
+      addCurso(codigo, sigla, descricao, id_coordenador, nome);
     }
     closeModal("cursoModal");
-    renderCursos();
   });
+
+  function updateCurso(codigo, sigla, descricao, id_coordenador, nome) {
+    let curso = { sigla, descricao, id_coordenador, nome};
+    fetch("http://localhost:3000/cursos/" + codigo, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(curso),
+    })
+      .then((response) => response.json())
+      .then((dados) => {
+        console.log(dados);
+        renderCursos();
+      });
+  }
 });

@@ -8,18 +8,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     fetch("http://localhost:3000/professores")
       .then((response) => response.json())
-      .then((professores) => {
+      .then((data) => {
+        professores = data;
         console.log(professores);
 
-        professores.forEach((professor, index) => {
+        professores.forEach((professor) => {
           const row = document.createElement("tr");
           row.innerHTML = `
                 <td>${professor.codigo}</td>
-                <td>${professor.nomeProfessor}</td>
-                <td>${professor.emailProfessor}</td>
+                <td>${professor.nome}</td>
+                <td>${professor.email}</td>
                 <td>
-                <button onclick="editProfessor(${index})">Editar</button>
-                <button onclick="deleteProfessor(${index})">Excluir</button>
+                <button onclick="editProfessor(${professor.codigo})">Editar</button>
+                <button onclick="deleteProfessor(${professor.codigo})">Excluir</button>
                 </td>
                 `;
           tbody.appendChild(row);
@@ -27,8 +28,10 @@ document.addEventListener("DOMContentLoaded", function () {
       });
   }
 
+  renderProfessores();
+
   function addProfessor(codigo, nomeProfessor, emailProfessor) {
-    let professor = { codigo, nomeProfessor, emailProfessor };
+    let professor = { codigo, nome: nomeProfessor, email: emailProfessor };
     console.log(professor);
 
     fetch("http://localhost:3000/professores", {
@@ -39,6 +42,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((response) => response.json())
       .then((dados) => {
         console.log(dados);
+        renderProfessores();
       });
   }
 
@@ -63,23 +67,35 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  function editProfessor(index) {
-    const prof = professores[index];
+  function editProfessor(codigo) {
+    const prof = professores.find(p => p.codigo == codigo);
     document.getElementById("codigo").value = prof.codigo;
     document.getElementById("nome").value = prof.nome;
     document.getElementById("email").value = prof.email;
-    currentProfessorId = index;
+    currentProfessorId = codigo;
     openModal("professorModal");
   }
 
-  function deleteProfessor(index) {
+  window.editProfessor = editProfessor;
+
+  function deleteProfessor(codigo) {
     if (confirm("Tem certeza que deseja excluir este professor?")) {
-      professores.splice(index, 1);
-      renderProfessores();
+      fetch("http://localhost:3000/professores/" + codigo, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      })
+        .then((response) => response.json())
+        .then((dados) => {
+          console.log(dados);
+          renderProfessores();
+        });
     }
   }
 
+  window.deleteProfessor = deleteProfessor;
+
   const professorForm = document.getElementById("professorForm");
+
   professorForm.addEventListener("submit", function (e) {
     e.preventDefault();
     const codigo = document.getElementById("codigo").value;
@@ -87,11 +103,24 @@ document.addEventListener("DOMContentLoaded", function () {
     const email = document.getElementById("email").value;
 
     if (currentProfessorId !== null) {
-      professores[currentProfessorId] = { codigo, nome, email };
+      updateProfessor(codigo, nome, email);
     } else {
       addProfessor(codigo, nome, email);
     }
     closeModal("professorModal");
-    renderProfessores();
   });
+
+  function updateProfessor(codigo, nome, email) {
+    let professor = { codigo, nome, email };
+    fetch("http://localhost:3000/professores/" + codigo, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(professor),
+    })
+      .then((response) => response.json())
+      .then((dados) => {
+        console.log(dados);
+        renderProfessores();
+      });
+  }
 });
